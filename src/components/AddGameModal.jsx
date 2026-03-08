@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { PLATFORMS, ALL_CATEGORIES } from '../constants';
+import { PLATFORMS, ALL_CATEGORIES, STATUSES } from '../constants';
 
 export default function AddGameModal({ editGame, onSave, onClose }) {
   const isEdit = !!editGame;
 
-  const [title, setTitle]         = useState('');
-  const [platform, setPlatform]   = useState('steam');
+  const [title, setTitle]           = useState('');
+  const [platform, setPlatform]     = useState('steam');
   const [categories, setCategories] = useState([]);
-  const [cover, setCover]         = useState('');
-  const [imgOk, setImgOk]         = useState(false);
+  const [cover, setCover]           = useState('');
+  const [imgOk, setImgOk]           = useState(false);
+  const [status, setStatus]         = useState(null); // null = not chosen yet
 
   // Populate fields when editing
   useEffect(() => {
@@ -18,6 +19,7 @@ export default function AddGameModal({ editGame, onSave, onClose }) {
       setCategories(editGame.categories || []);
       setCover(editGame.cover || '');
       setImgOk(!!editGame.cover);
+      setStatus(editGame.status || null);
     }
   }, [editGame]);
 
@@ -29,7 +31,7 @@ export default function AddGameModal({ editGame, onSave, onClose }) {
 
   const handleSave = () => {
     if (!title.trim()) return;
-    onSave({ title: title.trim(), platform, categories, cover: cover.trim() });
+    onSave({ title: title.trim(), platform, categories, cover: cover.trim(), status });
   };
 
   // Close on Escape
@@ -51,6 +53,27 @@ export default function AddGameModal({ editGame, onSave, onClose }) {
           {/* Title */}
           <div className="fg">
             <label>Nome do Jogo *</label>
+
+          {/* Status — always ask */}
+          <div className="fg">
+            <label>Status *</label>
+            <div className="status-picker">
+              {STATUSES.map(s => (
+                <button
+                  key={s.id}
+                  className={`status-pick-btn ${status === s.id ? 'sel' : ''}`}
+                  style={status === s.id ? {
+                    background: `${s.color}20`,
+                    borderColor: s.color,
+                    color: s.color,
+                  } : {}}
+                  onClick={() => setStatus(s.id)}
+                >
+                  {s.ico} {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
             <input
               type="text"
               placeholder="Ex: Among Us"

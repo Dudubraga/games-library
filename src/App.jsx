@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PLATFORMS } from './constants';
+import { PLATFORMS, STATUSES } from './constants';
 import { useGames } from './hooks/useGames';
 import GameGrid from './components/GameGrid';
 import AddGameModal from './components/AddGameModal';
@@ -7,6 +7,7 @@ import RandomModal from './components/RandomModal';
 import RouletteModal from './components/RouletteModal';
 import ToastContainer, { toast } from './components/Toast';
 import CategoryDropdown from './components/CategoryDropdown';
+import ImportModal from './components/ImportModal';
 import logoSvg from './assets/logo.svg';
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
   const [search, setSearch]                 = useState('');
   const [filterPlatform, setFilterPlatform] = useState(null);
   const [filterCategory, setFilterCategory] = useState(null);
+  const [filterStatus, setFilterStatus]     = useState(null);
 
   const [modal, setModal]             = useState(null);
   const [editingGame, setEditingGame] = useState(null);
@@ -24,6 +26,7 @@ export default function App() {
     if (search && !g.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (filterPlatform && g.platform !== filterPlatform) return false;
     if (filterCategory && !(g.categories || []).includes(filterCategory)) return false;
+    if (filterStatus && g.status !== filterStatus) return false;
     return true;
   });
 
@@ -41,6 +44,13 @@ export default function App() {
     } catch (e) {
       toast('❌ Erro ao salvar: ' + e.message);
     }
+  };
+
+  const handleBatchImport = async (gamesList) => {
+    for (const game of gamesList) {
+      await addGame(game);
+    }
+    toast(`✅ ${gamesList.length} jogos importados!`);
   };
 
   const handleEdit = (id) => {
@@ -101,6 +111,9 @@ export default function App() {
           </div>
 
           <div className="header-actions">
+            <button className="btn btn-ghost" onClick={() => setModal('import')}>
+              📥 Importar
+            </button>
             <button className="btn btn-gold" onClick={openRandom}>
               🎲 Aleatório
             </button>
@@ -128,6 +141,30 @@ export default function App() {
                 onClick={() => setFilterPlatform(prev => prev === p.id ? null : p.id)}
               >
                 {p.ico} {p.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="filter-sep" />
+
+          <span className="filter-label">Status</span>
+          <div className="filter-group">
+            <button
+              className={`tag-btn ${filterStatus === null ? 'active-status' : ''}`}
+              onClick={() => setFilterStatus(null)}
+            >Todos</button>
+            {STATUSES.map(s => (
+              <button
+                key={s.id}
+                className={`tag-btn ${filterStatus === s.id ? 'active-status' : ''}`}
+                style={filterStatus === s.id ? {
+                  background: `${s.color}20`,
+                  borderColor: s.color,
+                  color: s.color,
+                } : {}}
+                onClick={() => setFilterStatus(prev => prev === s.id ? null : s.id)}
+              >
+                {s.ico} {s.label}
               </button>
             ))}
           </div>
@@ -200,6 +237,13 @@ export default function App() {
       {modal === 'roulette' && (
         <RouletteModal
           games={games}
+          onClose={closeModal}
+        />
+      )}
+
+      {modal === 'import' && (
+        <ImportModal
+          onImport={handleBatchImport}
           onClose={closeModal}
         />
       )}

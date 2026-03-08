@@ -5,6 +5,11 @@ export const PLATFORMS = [
   { id: 'outro', label: 'Outro',      ico: '📦' },
 ];
 
+export const STATUSES = [
+  { id: 'owned',   label: 'Já temos',       ico: '✅', color: '#22c55e', dim: 'rgba(34,197,94,0.15)'  },
+  { id: 'wishlist',label: 'Queremos jogar', ico: '📅', color: '#a78bfa', dim: 'rgba(167,139,250,0.15)' },
+];
+
 export const ALL_CATEGORIES = [
   'Party Games', 'Coop', 'Tabuleiro', 'Puzzle', 'Arcade',
   'Ação', 'Aventura', 'Terror', 'Estratégia', 'Plataforma',
