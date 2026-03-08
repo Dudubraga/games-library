@@ -11,9 +11,9 @@ import ImportModal from './components/ImportModal';
 import logoSvg from './assets/logo.svg';
 
 const SORT_OPTIONS = [
-  { id: 'recent',   label: '🕒 Recentes'      },
   { id: 'az',       label: 'A → Z'             },
   { id: 'za',       label: 'Z → A'             },
+  { id: 'recent',   label: '🕒 Recentes'      },
   { id: 'owned',    label: '✅ Temos primeiro' },
   { id: 'wishlist', label: '📅 Queremos primeiro' },
   { id: 'platform', label: '🎮 Plataforma'     },
