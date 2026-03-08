@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { WHEEL_COLORS } from '../constants';
+import { WHEEL_COLORS, STATUSES } from '../constants';
 
 const CANVAS_SIZE = 320;
 const CX = CANVAS_SIZE / 2;
@@ -53,15 +53,20 @@ function drawWheel(canvas, items, angle) {
 }
 
 export default function RouletteModal({ games, onClose }) {
-  const [step, setStep] = useState('pick'); // 'pick' | 'spin'
-  const [picked, setPicked] = useState(new Set());
+  const [step, setStep]       = useState('pick');
+  const [picked, setPicked]   = useState(new Set());
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult]   = useState(null);
+  const [statusFilter, setStatusFilter] = useState(null); // null = todos
   const canvasRef = useRef(null);
-  const angleRef = useRef(0);
-  const rafRef = useRef(null);
+  const angleRef  = useRef(0);
+  const rafRef    = useRef(null);
 
-  const wheelItems = games.filter(g => picked.has(g.id));
+  const visibleGames = statusFilter
+    ? games.filter(g => g.status === statusFilter)
+    : games;
+
+  const wheelItems = visibleGames.filter(g => picked.has(g.id));
 
   // Draw whenever items or step changes
   useEffect(() => {
@@ -78,11 +83,17 @@ export default function RouletteModal({ games, onClose }) {
     });
   };
 
-  const pickAll  = () => setPicked(new Set(games.map(g => g.id)));
+  const pickAll  = () => setPicked(new Set(visibleGames.map(g => g.id)));
   const pickNone = () => setPicked(new Set());
   const pick5    = () => {
-    const shuffled = [...games].sort(() => Math.random() - 0.5).slice(0, Math.min(5, games.length));
+    const shuffled = [...visibleGames].sort(() => Math.random() - 0.5).slice(0, Math.min(5, visibleGames.length));
     setPicked(new Set(shuffled.map(g => g.id)));
+  };
+
+  // When status filter changes, clear picks
+  const handleStatusFilter = (val) => {
+    setStatusFilter(val);
+    setPicked(new Set());
   };
 
   const startSpin = () => {
@@ -148,9 +159,27 @@ export default function RouletteModal({ games, onClose }) {
         {step === 'pick' && (
           <>
             <div className="roulette-picker">
+              <div className="roulette-status-filter">
+                <button
+                  className={`sort-btn ${statusFilter === null ? 'active' : ''}`}
+                  onClick={() => handleStatusFilter(null)}
+                >🎮 Todos</button>
+                {STATUSES.map(s => (
+                  <button
+                    key={s.id}
+                    className={`sort-btn ${statusFilter === s.id ? 'active' : ''}`}
+                    style={statusFilter === s.id ? {
+                      background: `${s.color}20`,
+                      borderColor: s.color,
+                      color: s.color,
+                    } : {}}
+                    onClick={() => handleStatusFilter(s.id)}
+                  >{s.ico} {s.label}</button>
+                ))}
+              </div>
               <p>Selecione os jogos para entrar na roleta (<strong>{picked.size}</strong> selecionados):</p>
               <div className="pick-grid">
-                {games.map(g => (
+                {visibleGames.map(g => (
                   <div
                     key={g.id}
                     className={`pick-item ${picked.has(g.id) ? 'picked' : ''}`}
