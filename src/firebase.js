@@ -2,13 +2,13 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCXYBFr4vqJUwM5hrUYVKDxyC3N1sSSiRM",
-  authDomain: "tetogames-a7ce9.firebaseapp.com",
-  projectId: "tetogames-a7ce9",
-  storageBucket: "tetogames-a7ce9.firebasestorage.app",
-  messagingSenderId: "856221401898",
-  appId: "1:856221401898:web:42ba8b7e64dcc446675453",
-  measurementId: "G-YBXF0393PL"
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
