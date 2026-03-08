@@ -26,7 +26,7 @@ export default function App() {
   const [filterPlatform, setFilterPlatform] = useState(null);
   const [filterCategory, setFilterCategory] = useState(null);
   const [filterStatus, setFilterStatus]     = useState(null);
-  const [sortBy, setSortBy]                 = useState('recent');
+  const [sortBy, setSortBy]                 = useState('az');
 
   const [modal, setModal]             = useState(null);
   const [editingGame, setEditingGame] = useState(null);
