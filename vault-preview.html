@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT — Biblioteca de Jogos</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--surface:#16161f;--surface2:#1e1e2a;--border:rgba(255,255,255,0.07);--accent:#e63946;--accent2:#ff6b6b;--text:#e8e8f0;--text2:#8888a0;--text3:#555568;--card-w:160px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+.noise-overlay{position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;min-height:100vh}
+.header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.header-inner{max-width:1400px;margin:0 auto;padding:18px 32px;display:flex;align-items:center;gap:24px;justify-content:space-between}
+.logo-group{display:flex;align-items:center;gap:12px}
+.logo-icon{font-size:28px;color:var(--accent);line-height:1;filter:drop-shadow(0 0 12px rgba(230,57,70,0.6))}
+.logo-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;letter-spacing:5px;color:var(--text);line-height:1}
+.logo-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-top:1px}
+.header-controls{display:flex;align-items:center;gap:12px;flex:1;max-width:600px;margin-left:auto}
+.search-wrapper{position:relative;flex:1}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--text3);pointer-events:none}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px 10px 40px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:rgba(230,57,70,.4);box-shadow:0 0 0 3px rgba(230,57,70,.08)}
+.add-btn{display:flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 20px rgba(230,57,70,.3)}
+.add-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 6px 24px rgba(230,57,70,.45)}
+.add-btn span{font-size:20px;line-height:1}
+.category-nav{max-width:1400px;margin:0 auto;padding:0 32px 14px;display:flex;gap:6px;overflow-x:auto}
+.cat-btn{background:transparent;border:1px solid var(--border);border-radius:20px;padding:5px 16px;color:var(--text2);font-family:inherit;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap}
+.cat-btn:hover{border-color:rgba(230,57,70,.3);color:var(--text)}
+.cat-btn.active{background:rgba(230,57,70,.15);border-color:var(--accent);color:var(--accent)}
+.main{max-width:1400px;margin:0 auto;padding:32px}
+.stats-bar{margin-bottom:24px}
+.stats-count{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--text)}
+.stats-label{font-weight:400;color:var(--text3);font-size:14px;margin-left:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--card-w),1fr));gap:20px}
+.card{cursor:pointer;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.card:hover{transform:scale(1.04) translateY(-4px)}
+.card-cover-wrap{position:relative;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:var(--surface);box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.card-cover{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.card:hover .card-cover{transform:scale(1.05)}
+.card-cover-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--surface2);font-size:48px}
+.card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.5) 0%,transparent 40%,transparent 60%,rgba(0,0,0,.7) 100%);opacity:0;transition:opacity .25s;display:flex;align-items:flex-start;justify-content:flex-end;padding:10px}
+.card:hover .card-overlay{opacity:1}
+.card-delete{background:rgba(230,57,70,.85);border:none;border-radius:6px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:background .2s,transform .15s;backdrop-filter:blur(4px)}
+.card-delete:hover{background:var(--accent);transform:scale(1.15)}
+.card-badge{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)}
+.card-info{padding:10px 4px 4px}
+.card-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.empty-state{text-align:center;padding:100px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty-icon{font-size:64px;color:var(--text3)}
+.empty-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:600;color:var(--text2);letter-spacing:2px}
+.empty-sub{color:var(--text3);font-size:13px}
+
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+.modal-backdrop.hidden{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.7);animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);overflow:hidden}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:24px 28px 0}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px}
+.modal-close{background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:32px;height:32px;color:var(--text2);cursor:pointer;font-size:13px;transition:color .2s,background .2s}
+.modal-close:hover{color:var(--text);background:var(--surface)}
+.modal-form{display:flex;flex-direction:column;gap:20px;padding:24px 28px 28px}
+.form-group{display:flex;flex-direction:column;gap:8px}
+.form-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);font-weight:500}
+.form-input{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s}
+.form-input::placeholder{color:var(--text3)}
+.form-input:focus{border-color:rgba(230,57,70,.4)}
+.form-hint{font-size:11px;color:var(--text3);line-height:1.5}
+.form-categories{display:flex;gap:8px;flex-wrap:wrap}
+.preview-section{display:flex;flex-direction:column;gap:10px}
+.preview-toggle{background:none;border:none;color:var(--accent);font-family:inherit;font-size:12px;cursor:pointer;text-decoration:underline;text-align:left;padding:0}
+.preview-wrap{width:100px;aspect-ratio:2/3;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.preview-img{width:100%;height:100%;object-fit:cover}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:4px}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 20px;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer;transition:color .2s,background .2s}
+.btn-secondary:hover{color:var(--text);background:var(--surface)}
+.btn-primary{background:var(--accent);border:none;border-radius:8px;padding:10px 22px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;cursor:pointer;transition:background .2s,opacity .2s;box-shadow:0 4px 16px rgba(230,57,70,.3)}
+.btn-primary:hover{background:var(--accent2)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+@media(max-width:768px){
+  :root{--card-w:130px}
+  .header-inner{padding:16px;flex-wrap:wrap}
+  .header-controls{max-width:100%;width:100%}
+  .category-nav{padding:0 16px 12px}
+  .main{padding:20px 16px}
+  .grid{gap:14px}
+}
+</style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div class="app">
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo-group">
+        <span class="logo-icon">⬡</span>
+        <div>
+          <h1 class="logo-title">VAULT</h1>
+          <p class="logo-sub">Biblioteca Pessoal</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="search-wrapper">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" id="searchInput" type="text" placeholder="Buscar jogo...">
+        </div>
+        <button class="add-btn" onclick="openModal()"><span>+</span> Adicionar</button>
+      </div>
+    </div>
+    <nav class="category-nav" id="categoryNav"></nav>
+  </header>
+
+  <main class="main">
+    <div class="stats-bar">
+      <span class="stats-count" id="statsCount">0 <span class="stats-label">jogos</span></span>
+    </div>
+    <div id="gameGrid"></div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop hidden" id="modalBackdrop" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Adicionar Jogo</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-form">
+      <div class="form-group">
+        <label class="form-label">Nome do Jogo *</label>
+        <input class="form-input" id="gameTitle" type="text" placeholder="Ex: Among Us">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <div class="form-categories" id="formCategories"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL da Capa</label>
+        <input class="form-input" id="gameCover" type="url" placeholder="https://... (cole o link da imagem)">
+        <p class="form-hint">💡 Dica: Clique com botão direito em uma imagem e selecione "Copiar endereço da imagem"</p>
+      </div>
+      <div class="preview-section" id="previewSection" style="display:none">
+        <button class="preview-toggle" onclick="togglePreview()">Ver preview</button>
+        <div class="preview-wrap" id="previewWrap" style="display:none">
+          <img class="preview-img" id="previewImg">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" id="addBtn" onclick="addGame()">Adicionar à Biblioteca</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = ['Todos', 'PC', 'Party', 'Online', 'Tabuleiro'];
+const FORM_CATEGORIES = ['PC', 'Party', 'Online', 'Tabuleiro'];
+
+const INITIAL_GAMES = [
+  { id:'1', title:'Lethal Company', cover:'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1966720/library_600x900.jpg', category:'PC' },
+  { id:'2', title:'Gartic Phone', cover:'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1913870/library_600x900.jpg', category:'Online' },
+  { id:'3', title:'UNO', cover:'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/470220/library_600x900.jpg', category:'Party' },
+  { id:'4', title:"Liar's Bar", cover:'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3097560/library_600x900.jpg', category:'PC' },
+];
+
+let games = [];
+let activeCategory = 'Todos';
+let selectedFormCategory = 'PC';
+let previewVisible = false;
+
+function loadGames() {
+  try {
+    const saved = localStorage.getItem('vault-game-library');
+    games = saved ? JSON.parse(saved) : [...INITIAL_GAMES];
+  } catch { games = [...INITIAL_GAMES]; }
+}
+
+function saveGames() {
+  localStorage.setItem('vault-game-library', JSON.stringify(games));
+}
+
+function buildCategoryNav() {
+  const nav = document.getElementById('categoryNav');
+  nav.innerHTML = CATEGORIES.map(cat => `
+    <button class="cat-btn ${cat === activeCategory ? 'active' : ''}" onclick="setCategory('${cat}')">${cat}</button>
+  `).join('');
+}
+
+function buildFormCategories() {
+  const el = document.getElementById('formCategories');
+  el.innerHTML = FORM_CATEGORIES.map(cat => `
+    <button class="cat-btn ${cat === selectedFormCategory ? 'active' : ''}" onclick="selectFormCategory('${cat}')">${cat}</button>
+  `).join('');
+}
+
+function selectFormCategory(cat) {
+  selectedFormCategory = cat;
+  buildFormCategories();
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  buildCategoryNav();
+  renderGrid();
+}
+
+function getFiltered() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  return games.filter(g => {
+    const matchSearch = g.title.toLowerCase().includes(search);
+    const matchCat = activeCategory === 'Todos' || g.category === activeCategory;
+    return matchSearch && matchCat;
+  });
+}
+
+function renderGrid() {
+  const filtered = getFiltered();
+  const grid = document.getElementById('gameGrid');
+  const stats = document.getElementById('statsCount');
+  stats.innerHTML = `${filtered.length} <span class="stats-label">jogos</span>`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">◻</span>
+        <p class="empty-title">Nenhum jogo encontrado</p>
+        <p class="empty-sub">Adicione seu primeiro jogo à biblioteca</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = `<div class="grid">${filtered.map(g => cardHTML(g)).join('')}</div>`;
+}
+
+function cardHTML(g) {
+  const imgHtml = g.cover
+    ? `<img class="card-cover" src="${escapeHtml(g.cover)}" alt="${escapeHtml(g.title)}" onerror="this.parentElement.innerHTML='<div class=card-cover-fallback>🎮</div>'">`
+    : `<div class="card-cover-fallback">🎮</div>`;
+
+  return `
+    <div class="card">
+      <div class="card-cover-wrap">
+        ${imgHtml}
+        <div class="card-overlay">
+          <button class="card-delete" onclick="removeGame('${g.id}')" title="Remover jogo">🗑</button>
+        </div>
+        ${g.category ? `<span class="card-badge">${escapeHtml(g.category)}</span>` : ''}
+      </div>
+      <div class="card-info">
+        <p class="card-title">${escapeHtml(g.title)}</p>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+function removeGame(id) {
+  games = games.filter(g => g.id !== id);
+  saveGames();
+  renderGrid();
+}
+
+function openModal() {
+  document.getElementById('modalBackdrop').classList.remove('hidden');
+  document.getElementById('gameTitle').value = '';
+  document.getElementById('gameCover').value = '';
+  document.getElementById('previewSection').style.display = 'none';
+  document.getElementById('previewWrap').style.display = 'none';
+  previewVisible = false;
+  selectedFormCategory = 'PC';
+  buildFormCategories();
+  setTimeout(() => document.getElementById('gameTitle').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.add('hidden');
+}
+
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('modalBackdrop')) closeModal();
+}
+
+function addGame() {
+  const title = document.getElementById('gameTitle').value.trim();
+  const cover = document.getElementById('gameCover').value.trim();
+  if (!title) return;
+
+  const newGame = { id: Date.now().toString(), title, cover, category: selectedFormCategory };
+  games = [newGame, ...games];
+  saveGames();
+  renderGrid();
+  closeModal();
+}
+
+function togglePreview() {
+  previewVisible = !previewVisible;
+  const wrap = document.getElementById('previewWrap');
+  const btn = document.querySelector('.preview-toggle');
+  wrap.style.display = previewVisible ? 'block' : 'none';
+  btn.textContent = previewVisible ? 'Ocultar preview' : 'Ver preview';
+  if (previewVisible) {
+    const url = document.getElementById('gameCover').value.trim();
+    document.getElementById('previewImg').src = url;
+  }
+}
+
+document.getElementById('gameCover').addEventListener('input', function() {
+  const section = document.getElementById('previewSection');
+  section.style.display = this.value.trim() ? 'flex' : 'none';
+  if (previewVisible) {
+    document.getElementById('previewImg').src = this.value.trim();
+  }
+});
+
+document.getElementById('searchInput').addEventListener('input', renderGrid);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && !document.getElementById('modalBackdrop').classList.contains('hidden')) {
+    addGame();
+  }
+});
+
+// Init
+loadGames();
+buildCategoryNav();
+buildFormCategories();
+renderGrid();
+</script>
+</body>
+</html>
