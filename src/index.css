@@ -261,11 +261,38 @@ body::after {
   flex: 1; max-width: 1500px; width: 100%; margin: 0 auto;
   padding: 28px;
 }
-.stats-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 22px; }
+.stats-bar {
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
 .stats-num {
   font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: var(--text);
 }
 .stats-lbl { font-size: 12px; color: var(--text3); }
+
+/* Sort group — pushed to the far right */
+.sort-group {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap; justify-content: flex-end;
+}
+.sort-label {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text3); flex-shrink: 0; margin-right: 2px;
+}
+.sort-btn {
+  border-radius: 20px; padding: 5px 13px; font-size: 11px;
+  border: 1px solid var(--border); background: transparent; color: var(--text2);
+  cursor: pointer; transition: all .18s; white-space: nowrap;
+  font-family: 'Outfit', sans-serif;
+}
+.sort-btn:hover { border-color: var(--border2); color: var(--text); }
+.sort-btn.active {
+  background: rgba(0,212,255,.1);
+  border-color: rgba(0,212,255,.4);
+  color: var(--accent);
+}
 
 /* ─── GRID ────────────────────────────────────────── */
 .game-grid {

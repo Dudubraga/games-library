@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PLATFORMS, STATUSES } from './constants';
 import { useGames } from './hooks/useGames';
 import GameGrid from './components/GameGrid';
@@ -10,6 +10,15 @@ import CategoryDropdown from './components/CategoryDropdown';
 import ImportModal from './components/ImportModal';
 import logoSvg from './assets/logo.svg';
 
+const SORT_OPTIONS = [
+  { id: 'recent',   label: '🕒 Recentes'      },
+  { id: 'az',       label: 'A → Z'             },
+  { id: 'za',       label: 'Z → A'             },
+  { id: 'owned',    label: '✅ Temos primeiro' },
+  { id: 'wishlist', label: '📅 Queremos primeiro' },
+  { id: 'platform', label: '🎮 Plataforma'     },
+];
+
 export default function App() {
   const { games, loading, error, addGame, updateGame, removeGame } = useGames();
 
@@ -17,18 +26,49 @@ export default function App() {
   const [filterPlatform, setFilterPlatform] = useState(null);
   const [filterCategory, setFilterCategory] = useState(null);
   const [filterStatus, setFilterStatus]     = useState(null);
+  const [sortBy, setSortBy]                 = useState('recent');
 
   const [modal, setModal]             = useState(null);
   const [editingGame, setEditingGame] = useState(null);
 
-  // ── Filtered list ─────────────────────────────────
-  const filtered = games.filter(g => {
-    if (search && !g.title.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterPlatform && g.platform !== filterPlatform) return false;
-    if (filterCategory && !(g.categories || []).includes(filterCategory)) return false;
-    if (filterStatus && g.status !== filterStatus) return false;
-    return true;
-  });
+  // ── Filter ────────────────────────────────────────
+  const filtered = useMemo(() => {
+    let list = games.filter(g => {
+      if (search && !g.title.toLowerCase().includes(search.toLowerCase())) return false;
+      if (filterPlatform && g.platform !== filterPlatform) return false;
+      if (filterCategory && !(g.categories || []).includes(filterCategory)) return false;
+      if (filterStatus && g.status !== filterStatus) return false;
+      return true;
+    });
+
+    // ── Sort ────────────────────────────────────────
+    const STATUS_ORDER = { owned: 0, wishlist: 1, null: 2, undefined: 2 };
+    const PLAT_ORDER   = { steam: 0, epic: 1, web: 2, outro: 3 };
+
+    list = [...list].sort((a, b) => {
+      switch (sortBy) {
+        case 'az':
+          return a.title.localeCompare(b.title, 'pt-BR');
+        case 'za':
+          return b.title.localeCompare(a.title, 'pt-BR');
+        case 'owned':
+          return (STATUS_ORDER[a.status] ?? 2) - (STATUS_ORDER[b.status] ?? 2)
+            || a.title.localeCompare(b.title, 'pt-BR');
+        case 'wishlist':
+          return (STATUS_ORDER[b.status] ?? 2) - (STATUS_ORDER[a.status] ?? 2)
+            || a.title.localeCompare(b.title, 'pt-BR');
+        case 'platform':
+          return (PLAT_ORDER[a.platform] ?? 9) - (PLAT_ORDER[b.platform] ?? 9)
+            || a.title.localeCompare(b.title, 'pt-BR');
+        case 'recent':
+        default:
+          // Firestore returns newest first via orderBy createdAt desc
+          return 0;
+      }
+    });
+
+    return list;
+  }, [games, search, filterPlatform, filterCategory, filterStatus, sortBy]);
 
   // ── Game ops ──────────────────────────────────────
   const handleSave = async (data) => {
@@ -207,6 +247,19 @@ export default function App() {
                 <span className="live-dot" />
                 ao vivo
               </span>
+
+              <div className="sort-group">
+                <span className="sort-label">Ordenar</span>
+                {SORT_OPTIONS.map(opt => (
+                  <button
+                    key={opt.id}
+                    className={`sort-btn ${sortBy === opt.id ? 'active' : ''}`}
+                    onClick={() => setSortBy(opt.id)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <GameGrid
